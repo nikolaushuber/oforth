@@ -1,4 +1,4 @@
 (executable
  (public_name oforth)
  (name main)
- (libraries oforth))
+ (libraries oforth str))
