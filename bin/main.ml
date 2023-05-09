@@ -15,12 +15,9 @@ Type \"bye\" to leave the interpreter.
 
 let () = 
   print_endline header;
-
-  let dict = Dictionary.create () in 
-  Dictionary.load_builtins dict; 
-  let curr_state = ref (State.create ()) in 
+  let s = ref (State.create ()) in 
+  Builtins.load !s; 
   let tokens = ref [] in 
-  ignore !curr_state.rstack; 
   while true do
     print_string ">> "; 
     let line = read_line () in 
@@ -29,10 +26,10 @@ let () =
       while List.length !tokens > 0 do 
         let top = List.hd !tokens in 
         let top = String.lowercase_ascii top in 
-        if Hashtbl.mem dict top then 
-          curr_state := (Hashtbl.find dict top) !curr_state 
+        if Hashtbl.mem !s.dict top then 
+          s := (Hashtbl.find !s.dict top) !s 
         else 
-          curr_state := push !curr_state (int_of_string top) 
+          s := push !s (Cell.of_string top) 
         ; 
         tokens := List.tl !tokens
       done; 
