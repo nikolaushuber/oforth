@@ -151,8 +151,6 @@ let min_ s =
   let n1, n2, s' = pop2 s in 
   push s' (Cell.min n1 n2) 
 
-
-
 let builtins = [
   (* Arithmetic *)
   "+", add; 
@@ -198,5 +196,3 @@ let builtins = [
   "bye", bye; 
   "cr", cr; 
 ]
-
-let load st = List.iter (fun (s, f) -> Hashtbl.add st.dict s f) builtins 

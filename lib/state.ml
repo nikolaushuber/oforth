@@ -8,16 +8,17 @@ end
 type t = {
   stack : Cell.t list; 
   rstack : Cell.t list; 
-  dict : (string, t -> t) Hashtbl.t; 
+  dict : (string * (t -> t)) list; 
 }
 
 let create () = 
-  let dict = Hashtbl.create 10 in 
   {
     stack = [];
     rstack = [];
-    dict = dict; 
+    dict = []; 
   }
+
+let load_dict s dict = {s with dict = dict}
 
 let pop s = match s.stack with 
   | i :: il -> i, {s with stack = il}
@@ -42,5 +43,4 @@ let rpop s = match s.rstack with
 
 let rpush s r = {s with rstack = r :: s.rstack}
 
-let has_word s w = Hashtbl.mem s.dict w 
-
+let has_word s w = List.mem_assoc w s.dict 
