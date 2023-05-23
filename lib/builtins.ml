@@ -60,9 +60,7 @@ let div s =
   push s' (Cell.div n1 n2)  
 
 let show_stack s = 
-  print_string "["; 
-  List.iter (fun i -> print_string (" " ^ (Cell.to_string i))) (List.rev s.stack);
-  print_endline " ]";
+  print_endline (string_of_stack s); 
   s
 
 let dot s = 

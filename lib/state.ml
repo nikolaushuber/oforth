@@ -44,3 +44,6 @@ let rpop s = match s.rstack with
 let rpush s r = {s with rstack = r :: s.rstack}
 
 let has_word s w = List.mem_assoc w s.dict 
+
+let string_of_stack s = 
+  "[" ^ String.concat " " (List.map Cell.to_string (List.rev s.stack)) ^ "]"
