@@ -7,11 +7,11 @@
 (source
  (github username/reponame))
 
-(authors "Author Name")
+(authors "Nikolaus Huber")
 
-(maintainers "Maintainer Name")
+(maintainers "Nikolaus Huber")
 
-(license LICENSE)
+(license EUPL)
 
 (documentation https://url/to/documentation)
 
@@ -19,7 +19,7 @@
  (name oforth)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune)
+ (depends ocaml dune (cmdliner (>= 1.2.0)))
  (tags
   (topics "to describe" your project)))
 
