@@ -1,49 +1,52 @@
-module Cell = struct 
-  include Int32
-  let of_int = Int32.of_int 
-  let true_ = of_int (-1) 
-  let false_ = of_int (0) 
-end 
+type error = 
+  | StackUnderflow 
+  | UndefinedWord of string 
 
-type t = {
-  stack : Cell.t list; 
-  rstack : Cell.t list; 
+type state = {
+  stack : int list; 
   dict : (string * (t -> t)) list; 
 }
 
-let create () = 
-  {
-    stack = [];
-    rstack = [];
-    dict = []; 
+and t = 
+  | State of state
+  | Error of error 
+
+let ( let* ) o f = match o with 
+  | State s -> f s 
+  | Error _ -> o 
+
+let return s = State s 
+
+let create ?(init = []) ?(dict = []) () = 
+  State {
+    stack = List.rev init;
+    dict; 
   }
 
-let load_dict s dict = {s with dict = dict}
+let pop s = match s with 
+  | State s -> begin match s.stack with 
+    | i :: il -> i, return {s with stack = il}
+    | _ -> 0, Error StackUnderflow 
+  end
+  | Error _ -> 0, s 
 
-let pop s = match s.stack with 
-  | i :: il -> i, {s with stack = il}
-  | _ -> raise Error.StackError 
+let push s i = match s with 
+  | State s -> return {s with stack = i :: s.stack}
+  | Error _ -> s 
 
-let pop2 s = 
-  let n2, s' = pop s in 
-  let n1, s'' = pop s' in 
-  n1, n2, s'' 
+let has_word s w = match s with 
+  | State s -> List.mem_assoc w s.dict 
+  | Error _ -> false 
 
-let pop3 s = 
-  let n3, s' = pop s in 
-  let n2, s'' = pop s' in 
-  let n1, s''' = pop s'' in 
-  n1, n2, n3, s'''
+let apply_word s w = match s with 
+  | State st -> 
+    if has_word s w then 
+      (List.assoc w st.dict) s 
+    else 
+      Error (UndefinedWord w)
+  | Error _ -> s 
 
-let push s i = {s with stack = i :: s.stack}
-
-let rpop s = match s.rstack with 
-  | r :: rl -> r, {s with rstack = rl}
-  | _ -> raise Error.RStackError 
-
-let rpush s r = {s with rstack = r :: s.rstack}
-
-let has_word s w = List.mem_assoc w s.dict 
-
-let string_of_stack s = 
-  "[" ^ String.concat " " (List.map Cell.to_string (List.rev s.stack)) ^ "]"
+let string_of_stack s = match s with 
+  | State s -> "[ " ^ String.concat ", " (List.map string_of_int s.stack) ^ " ]"
+  | Error StackUnderflow -> "Stack Underflow." 
+  | Error (UndefinedWord w) -> "Undefined word: " ^ w 

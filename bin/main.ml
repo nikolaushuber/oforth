@@ -16,32 +16,19 @@ Type \"bye\" to leave the interpreter.
 
 let tokenize = Str.split (Str.regexp "[ \r\t]+")
 
-let interpret s tok = 
+let is_int s = 
+  try int_of_string s |> ignore; true
+  with Failure _ -> false
+
+let interpret tok s = 
   let tok' = String.lowercase_ascii tok in 
-  if List.mem_assoc tok' s.dict then 
-      (List.assoc tok' s.dict) s  
-  else
-      let i = Cell.of_string tok' in 
-      push s i 
-    
-let rec main s = function 
-  | top :: rest -> begin 
-    try
-      let s' = interpret s top in 
-      main s' rest
-    with 
-      | Error.StackError    -> print_endline "--- Stack underflow"; main s [] 
-      | Error.RStackError   -> print_endline "--- Return-Stack underflow"; main s [] 
-      | Error.ByeException  -> exit 0 
-      | Failure _ -> print_endline ("--- Unknown command: " ^ top); main s []   
-    end 
-  | [] -> print_string ">> "; read_line () |> tokenize |> main s 
+  if is_int tok' then 
+    push s (int_of_string tok') 
+  else 
+    apply_word s tok'
 
 let run () = 
-  print_endline header;
-  let s = State.create () in 
-  let s' = State.load_dict s Builtins.builtins in 
-  main s' [] 
+  print_endline header
 
 let default = Term.(const run $ const ()) 
 
@@ -56,28 +43,36 @@ let eval_input =
   let doc = "Input to evaluate." in 
   Arg.(value & pos 0 string "" & info [] ~doc)
 
-let explain input = 
+let init_stack = 
+  let doc = "Initial stack." in 
+  let c = Arg.list Arg.int in 
+  Arg.(value & opt c [] & info ["s";"stack"] ~doc) 
+
+let explain input stack = 
   let tokens = tokenize input in 
   let w = List.fold_left max 6 (List.map String.length tokens) in 
   let header = (pad w "OP") ^ (pad w "Stack") in 
   print_endline header; 
   print_endline ("--    -----");
-  let s = State.create () in 
-  let s' = State.load_dict s Builtins.builtins in 
-  try 
-    ignore (List.fold_left (fun state tok ->
-      print_string (pad w tok); 
-      let next = interpret state tok in 
-      print_endline (string_of_stack next); 
-      next
-    ) s' tokens)
-  with 
-      | Error.StackError    -> print_endline "Stack underflow"
-      | Error.RStackError   -> print_endline "Return-Stack underflow"
-      | Error.ByeException  -> print_endline "" 
-      | Failure _ -> print_endline ("Unknown command")
+  let s = State.create ~init:stack ~dict:Builtins.builtins () in 
+  print_endline ((pad w "") ^ (string_of_stack s)); 
+
+  let rec inner tkns s = match tkns with 
+    | tkn :: rest -> begin 
+      print_string (pad w tkn); 
+      let next_s = interpret tkn s in 
+      print_endline (string_of_stack next_s); 
+      match next_s with 
+      | State _ -> inner rest next_s 
+      | Error _ -> () 
+    end 
+    | [] -> () 
+  in 
+  inner tokens s 
+
   
-let explain_cmd = Cmd.v (Cmd.info "explain") Term.(const explain $ eval_input) 
+  
+let explain_cmd = Cmd.v (Cmd.info "explain") Term.(const explain $ eval_input $ init_stack ) 
   
 let cmd = Cmd.group (Cmd.info "oforth") ~default [explain_cmd]
 
