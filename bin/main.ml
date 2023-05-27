@@ -70,8 +70,6 @@ let explain input stack =
   in 
   inner tokens s 
 
-  
-  
 let explain_cmd = Cmd.v (Cmd.info "explain") Term.(const explain $ eval_input $ init_stack ) 
   
 let cmd = Cmd.group (Cmd.info "oforth") ~default [explain_cmd]

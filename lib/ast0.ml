@@ -1,31 +1,12 @@
-(* let rec find_tok' lst tok c = match lst with 
-  | [] -> None 
-  | hd :: tl -> if (String.equal hd tok) then Some c else find_tok' tl tok (c+1) 
-
-let find_tok lst tok = find_tok' lst tok 0 
-
-let find_tok_last lst tok = match find_tok' (List.rev lst) tok 0 with 
-  | Some c -> Some (List.length lst - c - 1)
-  | None -> None 
-
-let rec split_at n acc l =
-    if n = 0 then (List.rev acc, if List.length l == 0 then l else List.tl l) else
-    match l with
-    | [] -> (List.rev acc, [])
-    | h :: t -> split_at (n-1) (h :: acc) t
-  
-  let split_list l idx = split_at idx [] l
+open Helpers 
 
 exception SyntaxError 
-exception UnknownWord of string 
 
-type ast0 = 
+type t = 
   | Word of string 
-  | If of (ast0 * ast0) 
-  | Block of ast0 list 
-  | Do of ast0 
-
-(* Try to get input into ast0 shape *)
+  | If of (t * t) 
+  | Block of t list 
+  | Do of t 
 
 let rec to_ast0 input acc = match input with  
   | "if" :: rest -> begin 
@@ -62,19 +43,10 @@ let rec to_ast0 input acc = match input with
     end 
   end
   | word :: rest -> to_ast0 rest ((Word word) :: acc) 
-  | [] -> Block (List.rev acc)
+  | [] -> Block (List.rev acc) 
 
-let rec ast0_to_ast s ast0 : State.ast = match ast0 with 
-  | Block bl -> Block (List.map (ast0_to_ast s) bl) 
-  | If (e, t) -> If (ast0_to_ast s e, ast0_to_ast s t) 
-  | Do body -> Do (ast0_to_ast s body)
-  | Word w -> 
-    if State.has_word s w then 
-      let f = State.get_word s w in 
-      Word f 
-    else
-      raise (UnknownWord w)
-
-let f s input = 
-  let ast0 = to_ast0 input [] in 
-  ast0_to_ast s ast0  *)
+let parse input = 
+  try
+    Some (to_ast0 input [])
+  with 
+    | SyntaxError -> None 

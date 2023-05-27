@@ -104,6 +104,18 @@ let min_ s =
   let n1, s = pop s in 
   push s (Int.min n1 n2) 
 
+let nop s = s 
+
+let show_stack s = 
+  print_endline (string_of_stack s); s 
+
+let cr s = print_endline ""; s 
+
+let bye _ = exit 0 
+
+let colon s = start_compiling s 
+  
+
 let basics = [
   (* Arithmetic *)
   "+", add; 
@@ -130,12 +142,21 @@ let basics = [
   "over", over; 
 ]
 
-(* let tools = [
+let immediate = [
+  ":", nop; 
+  "if", nop; 
+  "else", nop; 
+  "then", nop; 
+  "do", nop; 
+  "loop", nop; 
+  ";", nop; 
+]
+
+let tools = [
   (* Tools *)
   ".s", show_stack; 
-  ".", dot; 
   "bye", bye; 
   "cr", cr;  
-] *)
+] 
 
-let builtins = basics 
+let builtins = basics @ tools 
