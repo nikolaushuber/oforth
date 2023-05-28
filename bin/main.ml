@@ -16,19 +16,25 @@ Type \"bye\" to leave the interpreter.
 
 let tokenize = Str.split (Str.regexp "[ \r\t]+")
 
-let is_int s = 
-  try int_of_string s |> ignore; true
-  with Failure _ -> false
-
 let interpret tok s = 
   let tok' = String.lowercase_ascii tok in 
-  if is_int tok' then 
-    push s (int_of_string tok') 
-  else 
-    apply_word s tok'
+  apply_word s tok'
+
+let rec loop s = 
+  print_string ">> "; 
+  let line = read_line () in 
+  let tokens = tokenize line in 
+  let next_s = List.fold_left (fun s tok -> interpret tok s) s tokens in 
+  match next_s with 
+  | State _ -> loop next_s
+  | Error SyntaxError -> print_endline "Syntax error."; loop s
+  | Error (UndefinedWord w) -> print_endline ("Undefined word: " ^ w); loop s 
+  | Error StackUnderflow -> print_endline "Stack Underflow"; loop s
 
 let run () = 
-  print_endline header
+  print_endline header; 
+  let s = State.create ~dict:Builtins.builtins () in 
+  loop s 
 
 let default = Term.(const run $ const ()) 
 

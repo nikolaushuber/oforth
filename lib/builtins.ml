@@ -113,9 +113,6 @@ let cr s = print_endline ""; s
 
 let bye _ = exit 0 
 
-let colon s = start_compiling s 
-  
-
 let basics = [
   (* Arithmetic *)
   "+", add; 
@@ -143,13 +140,13 @@ let basics = [
 ]
 
 let immediate = [
-  ":", nop; 
+  ":", start_compiling; 
   "if", nop; 
   "else", nop; 
   "then", nop; 
   "do", nop; 
   "loop", nop; 
-  ";", nop; 
+  ";", end_compiling; 
 ]
 
 let tools = [
@@ -159,4 +156,4 @@ let tools = [
   "cr", cr;  
 ] 
 
-let builtins = basics @ tools 
+let builtins = basics @ immediate @ tools 

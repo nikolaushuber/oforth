@@ -14,6 +14,7 @@ type word =
 
 and ast = 
   | Word of word
+  | Const of int 
   | Block of ast list 
   | If of ast * ast 
   | Do of ast 
@@ -43,6 +44,10 @@ let create ?(init = []) ?(dict = []) () =
     compiling = false; 
   }
 
+let is_int s = 
+  try int_of_string s |> ignore; true
+  with Failure _ -> false
+
 let pop s = match s with 
   | State s -> begin match s.stack with 
     | i :: il -> i, return {s with stack = il}
@@ -62,9 +67,8 @@ let get_word s w = match s with
   | State s -> List.assoc w s.dict 
   | Error _ -> assert false 
 
-let add_word s w f = match s with 
-  | State s -> return {s with dict = (w, f) :: s.dict} 
-  | Error _ -> s 
+let add_word s w f = {s with dict = (w, f) :: s.dict} 
+
 
 let rec ast0_to_ast s (ast0 : Ast0.t) : ast = match ast0 with 
   | Block bl -> Block (List.map (ast0_to_ast s) bl) 
@@ -74,6 +78,8 @@ let rec ast0_to_ast s (ast0 : Ast0.t) : ast = match ast0 with
     if has_word s w then 
       let f = get_word s w in 
       Word f 
+    else if is_int w then 
+      Const (int_of_string w) 
     else
       raise (UnknownWord w)
 
@@ -83,16 +89,16 @@ let compile s input = match input with
     name, ast0_to_ast s ast0 
   | _ -> raise SyntaxError 
 
-
 let rec eval ast s : t = match ast with  
   | Word w -> apply s w 
+  | Const i -> push s i 
   | Block al -> List.fold_left (fun s a -> eval a s) s al 
   | If (t, e) -> 
       let cond, s' = pop s in 
       if cond = 0 then eval e s' else eval t s' 
   | Do body -> 
-    let limit, s' = pop s in 
-    let start, s'' = pop s' in 
+    let start, s' = pop s in 
+    let limit, s'' = pop s' in 
     let idxs = if limit > start 
       then 
         List.init limit (fun x -> x + start) 
@@ -104,31 +110,42 @@ and apply s = function
   | Primitive f -> f s 
   | UserDefined ast -> eval ast s 
 
-let apply_word s w = match s with 
-  | State st -> 
-    if has_word s w then 
-      apply s (List.assoc w st.dict)
-    else 
-      Error (UndefinedWord w)
-  | Error _ -> s 
-
 let start_compiling s = match s with 
   | Error _ -> s 
-  | State st -> 
+  | State st ->  
       if st.compiling then Error SyntaxError 
       else return {st with compiling = true} 
 
 let end_compiling s = match s with 
   | Error _ -> s 
   | State st ->
-      if st.compiling then
-        let name, ast = compile s st.compile_buffer in 
-        add_word s name (UserDefined ast) 
+      if st.compiling then begin 
+        try
+          let name, ast = compile s (List.rev st.compile_buffer) in 
+          let s = add_word st name (UserDefined ast) in 
+          return {s with compiling = false; compile_buffer = []}
+        with 
+          | SyntaxError -> Error SyntaxError 
+          | UnknownWord w -> Error (UndefinedWord w) 
+      end else Error SyntaxError 
+
+let apply_word s w = match s with 
+  | State st -> if st.compiling then begin 
+      if String.equal w ";" then 
+        end_compiling s 
       else 
-        Error SyntaxError 
+        State {st with compile_buffer = w :: st.compile_buffer} 
+    end else
+      if has_word s w then 
+        apply s (List.assoc w st.dict)
+      else if is_int w then 
+        push s (int_of_string w)
+      else 
+        Error (UndefinedWord w)
+  | Error _ -> s 
 
 let string_of_stack s = match s with 
-  | State s -> "[ " ^ String.concat ", " (List.map string_of_int s.stack) ^ " ]"
+  | State s -> "[ " ^ String.concat ", " (List.map string_of_int (List.rev s.stack)) ^ " ]"
   | Error StackUnderflow -> "Stack Underflow." 
   | Error (UndefinedWord w) -> "Undefined word: " ^ w 
   | _ -> assert false 
