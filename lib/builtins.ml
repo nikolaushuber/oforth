@@ -111,6 +111,11 @@ let show_stack s =
 
 let cr s = print_endline ""; s 
 
+let dot s = 
+  let n, s = pop s in 
+  print_endline (string_of_int n); 
+  s
+
 let bye _ = exit 0 
 
 let basics = [
@@ -152,6 +157,7 @@ let immediate = [
 let tools = [
   (* Tools *)
   ".s", show_stack; 
+  ".", dot; 
   "bye", bye; 
   "cr", cr;  
 ] 
