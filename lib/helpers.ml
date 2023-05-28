@@ -1,3 +1,5 @@
+let tokenize = Str.split (Str.regexp "[ \r\t\n]+")
+
 let rec find_tok' lst tok c = match lst with 
   | [] -> None 
   | hd :: tl -> if (String.equal hd tok) then Some c else find_tok' tl tok (c+1) 

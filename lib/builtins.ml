@@ -23,11 +23,6 @@ let slash_mod s =
   let s = push s n3 in 
   push s n4 
 
-let div s = 
-  let n2, s = pop s in 
-  let n1, s = pop s in 
-  push s (n1 / n2)  
-
 let dup s = 
   let top, _ = pop s in 
   push s top 
@@ -43,10 +38,10 @@ let drop s =
   s
 
 let over s =
-  let x2, s = pop s in 
-  let x1, s = pop s in 
-  let s = push s x2 in 
-  push s x1 
+  let _, s' = pop s in 
+  let x1, _ = pop s' in 
+  push s x1
+
 
 let equals s = 
   let a, s = pop s in 
@@ -67,10 +62,6 @@ let or_ s =
   let n2, s = pop s in 
   let n1, s = pop s in
   push s (Int.logor n1 n2) 
-
-let true_ s = push s (-1) 
-
-let false_ s = push s 0
 
 let lshift s = 
   let u, s = pop s in 
@@ -123,15 +114,13 @@ let basics = [
   "+", add; 
   "-", sub; 
   "*", mul;
-  "/", div; 
+  "/mod", slash_mod; 
 
   (* Logic *)
   "=", equals; 
   "<", less_than; 
   "and", and_; 
   "or", or_; 
-  "true", true_; 
-  "false", false_; 
   "lshift", lshift; 
   "rshift", rshift; 
   "invert", invert; 
@@ -139,7 +128,6 @@ let basics = [
 
   (* Stack *)
   "dup", dup; 
-  "swap", swap; 
   "drop", drop; 
   "over", over; 
 ]
@@ -160,6 +148,6 @@ let tools = [
   ".", dot; 
   "bye", bye; 
   "cr", cr;  
-] 
+]
 
 let builtins = basics @ immediate @ tools 

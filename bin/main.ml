@@ -1,6 +1,7 @@
 open Cmdliner 
 open Oforth
 open State
+open Helpers 
 
 let version = "0.1"
 
@@ -13,12 +14,6 @@ let header =
 Version: " ^ version ^ "  License: EUPL
 Type \"bye\" to leave the interpreter. 
 "
-
-let tokenize = Str.split (Str.regexp "[ \r\t]+")
-
-let interpret tok s = 
-  let tok' = String.lowercase_ascii tok in 
-  apply_word s tok'
 
 let rec loop s = 
   print_string ">> "; 
@@ -34,6 +29,7 @@ let rec loop s =
 let run () = 
   print_endline header; 
   let s = State.create ~dict:Builtins.builtins () in 
+  let s = State.load_core s in 
   loop s 
 
 let default = Term.(const run $ const ()) 
@@ -61,6 +57,7 @@ let explain input stack =
   print_endline header; 
   print_endline ("--    -----");
   let s = State.create ~init:stack ~dict:Builtins.builtins () in 
+  let s = State.load_core s in 
   print_endline ((pad w "") ^ (string_of_stack s)); 
 
   let rec inner tkns s = match tkns with 
