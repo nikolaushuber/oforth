@@ -154,6 +154,10 @@ let interpret tok s =
   let tok' = String.lowercase_ascii tok in 
   apply_word s tok'
 
+let clear_stack = function 
+  | State st -> return {st with stack = []} 
+  | _ as s -> s 
+
 let core = {|
   : swap      0 rot + ;
   : nip       swap drop ;

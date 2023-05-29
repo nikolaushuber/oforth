@@ -109,6 +109,9 @@ let dot s =
 
 let bye _ = exit 0 
 
+let clear s = 
+  clear_stack s 
+
 let basics = [
   (* Arithmetic *)
   "+", add; 
@@ -148,6 +151,7 @@ let tools = [
   ".", dot; 
   "bye", bye; 
   "cr", cr;  
+  "clear", clear; 
 ]
 
 let builtins = basics @ immediate @ tools 
