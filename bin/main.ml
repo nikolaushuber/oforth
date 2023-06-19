@@ -11,7 +11,7 @@ let header =
 | .-. ||  `--,| .-. ||  .--''-.  .-'|  .-.  | 
 ' '-' '|  |`  ' '-' '|  |     |  |  |  | |  | 
  `---' `--'    `---' `--'     `--'  `--' `--'                                              
-Version: " ^ version ^ "  License: EUPL
+Version: " ^ version ^ "  License: EUPL-1.2
 Type \"bye\" to leave the interpreter. 
 "
 
@@ -25,6 +25,7 @@ let rec loop s =
   | Error SyntaxError -> print_endline "Syntax error."; loop s
   | Error (UndefinedWord w) -> print_endline ("Undefined word: " ^ w); loop s 
   | Error StackUnderflow -> print_endline "Stack Underflow"; loop s
+  | Error DivisionByZero -> print_endline "Division by zero"; loop s 
 
 let run () = 
   print_endline header; 

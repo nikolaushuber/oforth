@@ -18,3 +18,24 @@ let rec split_at n acc l =
 
 let split_list l idx = split_at idx [] l
 
+let core = {|
+  : swap      0 rot + ;
+  : nip       swap drop ;
+  : mod       /mod drop ;
+  : /         /mod swap drop ;
+  : 2*        2 * ;
+  : 2/        2 / ;
+  : true      -1 ;
+  : false     0 ;
+  : >         swap < ;
+  : 0=        0 = ;
+  : <>        = invert ;
+  : 1+        1 + ;
+  : 1-        1 - ;
+  : 2+        2 + ;
+  : ?dup      dup if dup then ;
+  : xor       over over or rot rot and invert and 0= invert ;
+  : <=        over over < rot rot = or ;
+  : >=        over over > rot rot = or ;
+|}
+

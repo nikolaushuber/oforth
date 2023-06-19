@@ -6,6 +6,7 @@ exception UnknownWord of string
 type error = 
   | StackUnderflow 
   | UndefinedWord of string 
+  | DivisionByZero
   | SyntaxError 
 
 type word = 
@@ -158,29 +159,8 @@ let clear_stack = function
   | State st -> return {st with stack = []} 
   | _ as s -> s 
 
-let core = {|
-  : swap      0 rot + ;
-  : nip       swap drop ;
-  : mod       /mod drop ;
-  : /         /mod swap drop ;
-  : 2*        2 * ;
-  : 2/        2 / ;
-  : true      -1 ;
-  : false     0 ;
-  : >         swap < ;
-  : 0=        0 = ;
-  : <>        = invert ;
-  : 1+        1 + ;
-  : 1-        1 - ;
-  : 2+        2 + ;
-  : ?dup      dup if dup then ;
-  : xor       over over or rot rot and invert and 0= invert ;
-  : <=        over over < rot rot = or ;
-  : >=        over over > rot rot = or ;
-|}
-
 let load_core s = 
-  let tokens = Helpers.tokenize core in 
+  let tokens = Helpers.tokenize Helpers.core in 
   try 
     List.fold_left (fun s x -> interpret x s) s tokens
   with

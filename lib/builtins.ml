@@ -18,6 +18,7 @@ let mul s =
 let slash_mod s = 
   let n2, s = pop s in 
   let n1, s = pop s in 
+  if n2 == 0 then Error DivisionByZero else 
   let n3 = n1 mod n2 in 
   let n4 = n1 / n2 in 
   let s = push s n3 in 
