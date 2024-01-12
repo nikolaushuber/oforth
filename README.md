@@ -1,6 +1,6 @@
 # oForth 
 
-OForth is a Forth interpreter written in OCaml. 
+OForth is an interpreter for a small subset of the Forth language written in OCaml. 
 
 # Installation 
 
